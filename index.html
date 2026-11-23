@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Briefkästen</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+:root {
+  /* Weihnachtsnacht: tiefes Tannengrün, warmes Gold, Kerzenrot, Papier wie Briefpapier. */
+  --bg: #0e2a24; --surface: #15392f; --fg: #f4efe3; --muted: #a8c2b6; --line: #2c5c4d;
+  --accent: #d8453b; --accent-fg: #ffffff; --gold: #f2c14e;
+  --paper: #fffaf0; --paper-fg: #2a2822; --paper-line: #e6dcc3;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 28px rgba(0,0,0,.3);
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Inter", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; position: relative; background: var(--bg) linear-gradient(180deg, #0a1b21 0%, #0e2a24 55%, #113229 100%) fixed; color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+  padding-block: 96px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 980px; margin: 0 auto; }
+h1, h2 { font-family: var(--font-display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(2rem, 6vw, 3.1rem); line-height: 1.05; font-weight: 700; }
+.lead { color: var(--muted); max-width: 56ch; margin: 12px 0 0; font-size: 1.05rem; }
+.status { color: var(--muted); font-size: .9rem; min-height: 1.4em; margin: 28px 0 12px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; box-shadow: var(--shadow); }
+.card h2 { font-size: 1.25rem; overflow-wrap: anywhere; }
+.meta { color: var(--muted); font-size: .88rem; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.mb { width: 100%; max-width: 170px; align-self: center; }
+.mb .flag { transform-box: fill-box; transition: transform .35s ease; }
+.has .flag { transform: translateY(-14px); }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; }
+button { font: inherit; cursor: pointer; border-radius: 9px; padding: 9px 14px; border: 1px solid var(--line); background: transparent; color: var(--fg); font-weight: 500; }
+button:hover { border-color: var(--muted); }
+button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.primary { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
+button.primary:hover { filter: brightness(1.06); }
+button:disabled { opacity: .6; cursor: progress; }
+.new { border-style: dashed; box-shadow: none; background: transparent; align-items: center; justify-content: center; text-align: center; min-height: 250px; }
+.new p { margin: 0; color: var(--muted); max-width: 22ch; }
+.overlay { position: fixed; inset: 0; background: rgba(10,14,18,.55); display: flex; align-items: flex-start; justify-content: center; overflow-y: auto;
+  padding-block: 7vh 32px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); z-index: 20; }
+.sheet { border-top: 8px solid transparent; border-image: repeating-linear-gradient(135deg, #d8453b 0 14px, #fffaf0 14px 22px, #2e7d57 22px 36px, #fffaf0 36px 44px) 8; background: var(--paper); color: var(--paper-fg); width: 100%; max-width: 520px; border-radius: 6px; padding: 24px; box-shadow: 0 20px 60px rgba(0,0,0,.35); display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.sheet h2 { font-size: 1.5rem; }
+.sheet p { margin: 0; }
+.sheet .hint { font-size: .88rem; opacity: .75; }
+.sheet label { font-size: .85rem; font-weight: 600; display: block; margin-bottom: 4px; }
+.sheet input, .sheet textarea { width: 100%; font: inherit; color: var(--paper-fg); background: transparent; border: 1px solid var(--paper-line); border-radius: 6px; padding: 9px 11px; }
+.sheet textarea { min-height: 150px; resize: vertical; line-height: 1.6; }
+.sheet button { color: var(--paper-fg); border-color: var(--paper-line); }
+.sheet button.primary { color: var(--accent-fg); background: var(--accent); border-color: transparent; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.err { color: #a3231c; font-size: .9rem; font-weight: 500; min-height: 1.2em; }
+.letters { display: flex; flex-direction: column; gap: 12px; }
+.letter { border: 1px solid var(--paper-line); border-radius: 4px; padding: 14px 16px; background: rgba(255,255,255,.35); }
+.letter .text { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.65; font-size: 1rem; }
+.letter .by { font-size: .82rem; opacity: .75; margin-top: 10px; }
+.eyebrow { color: var(--gold); font-size: .8rem; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; margin: 0 0 8px; }
+.heart { color: var(--accent); display: inline-block; }
+.lights { position: absolute; top: env(safe-area-inset-top, 0px); left: 0; right: 0; height: 64px; pointer-events: none; overflow: hidden; }
+.lights svg { display: block; }
+.bulb ellipse { fill: var(--c); filter: drop-shadow(0 0 6px var(--c)); }
+.bulb { animation: twinkle 2.4s ease-in-out infinite; }
+@keyframes twinkle { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+@media (prefers-reduced-motion: reduce) { .mb .flag { transition: none; } .bulb { animation: none; } }
+</style>
+</head>
+<body>
+<div class="lights" id="lights" aria-hidden="true"></div>
+<div class="wrap">
+  <p class="eyebrow">Frohe Weihnachten</p>
+  <h1>Team Juliane <span class="heart" aria-hidden="true">♥</span></h1>
+  <p class="lead">Hinterlasse einen Weihnachtsgruß in einem Briefkasten. Gelesen wird er nur mit dem Passwort des Briefkastens.</p>
+  <div class="status" id="status" role="status">Briefkästen werden geladen …</div>
+  <div class="grid" id="grid"></div>
+</div>
+<div id="modal"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+// ===== Hier die Werte aus Supabase eintragen (Project Settings > API) =====
+const SUPABASE_URL = "https://cdxruesvbikpohkbbrzj.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkeHJ1ZXN2YmlrcG9oa2JicnpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU0MzY5NDIsImV4cCI6MjExMTAxMjk0Mn0.hPLR9HO8yG1NiVxwF5pzz-WIzuAczhYCRr3oBZGwEdw";
+// ==========================================================================
+
+const enc = new TextEncoder(), dec = new TextDecoder();
+const b64 = (buf) => { const u = new Uint8Array(buf); let s = ""; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); };
+const unb64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+const RSA = { name: "RSA-OAEP", hash: "SHA-256" };
+
+async function pwKey(pw, salt) {
+  const base = await crypto.subtle.importKey("raw", enc.encode(pw), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: 250000, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+}
+async function makeBox(name, pw) {
+  const kp = await crypto.subtle.generateKey({ ...RSA, modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]) }, true, ["encrypt", "decrypt"]);
+  const pub = await crypto.subtle.exportKey("jwk", kp.publicKey);
+  const priv = await crypto.subtle.exportKey("pkcs8", kp.privateKey);
+  const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+  const wrapped = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, await pwKey(pw, salt), priv);
+  return { name, pub, salt: b64(salt), iv: b64(iv), priv: b64(wrapped) };
+}
+async function unlock(box, pw) {
+  const k = await pwKey(pw, unb64(box.salt));
+  const pk = await crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(box.iv) }, k, unb64(box.priv));
+  return crypto.subtle.importKey("pkcs8", pk, RSA, false, ["decrypt"]);
+}
+async function seal(box, payload) {
+  const pub = await crypto.subtle.importKey("jwk", box.pub, RSA, false, ["encrypt"]);
+  const ak = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt"]);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, ak, enc.encode(JSON.stringify(payload)));
+  const ek = await crypto.subtle.encrypt({ name: "RSA-OAEP" }, pub, await crypto.subtle.exportKey("raw", ak));
+  return { ek: b64(ek), iv: b64(iv), ct: b64(ct) };
+}
+async function openLetter(priv, l) {
+  const raw = await crypto.subtle.decrypt({ name: "RSA-OAEP" }, priv, unb64(l.ek));
+  const ak = await crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["decrypt"]);
+  const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(l.iv) }, ak, unb64(l.ct));
+  return JSON.parse(dec.decode(pt));
+}
+
+function h(tag, props, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (k === "class") el.className = v;
+    else if (k === "text") el.textContent = v;
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else if (v !== false && v != null) el.setAttribute(k, v);
+  }
+  for (const k of kids.flat()) if (k != null) el.append(k);
+  return el;
+}
+
+const COLORS = ["#b3322b", "#2e7d57", "#c9972b", "#2f6f8f", "#7a3f8f", "#a63d5e"];
+
+function buildLights() {
+  const el = document.getElementById("lights");
+  const W = document.documentElement.clientWidth || window.innerWidth;
+  const n = Math.max(2, Math.round(W / 150)), sw = W / n;
+  const cols = ["#ff4d3d", "#ffc83d", "#4fd37a", "#5bb8ff", "#ff7ac8"];
+  let wire = "", bulbs = "", i = 0;
+  for (let s = 0; s < n; s++) {
+    const x0 = s * sw, x1 = (s + 1) * sw, cx = (x0 + x1) / 2, y0 = 4, cy = 44;
+    wire += "M" + x0 + " " + y0 + " Q" + cx + " " + cy + " " + x1 + " " + y0 + " ";
+    for (let k = 1; k <= 4; k++) {
+      const t = k / 5, u = 1 - t;
+      const x = u * u * x0 + 2 * u * t * cx + t * t * x1, y = u * u * y0 + 2 * u * t * cy + t * t * y0;
+      const c = cols[i % cols.length];
+      bulbs += '<g class="bulb" transform="translate(' + x.toFixed(1) + " " + y.toFixed(1) + ')" style="--c:' + c + ";animation-delay:" + ((i * 0.37) % 2.4).toFixed(2) + 's">' +
+        '<rect x="-2.5" y="0" width="5" height="5" fill="#26302c"/><ellipse cx="0" cy="11" rx="5" ry="7"/></g>';
+      i++;
+    }
+  }
+  el.innerHTML = '<svg width="' + W + '" height="64" viewBox="0 0 ' + W + ' 64"><path d="' + wire + '" fill="none" stroke="#1d2925" stroke-width="2"/>' + bulbs + "</svg>";
+}
+buildLights();
+let lightsTimer; window.addEventListener("resize", () => { clearTimeout(lightsTimer); lightsTimer = setTimeout(buildLights, 150); });
+const colorFor = (id) => { let n = 0; for (const c of id) n = (n * 31 + c.charCodeAt(0)) >>> 0; return COLORS[n % COLORS.length]; };
+
+function mailboxSvg(color, has) {
+  const wrap = document.createElement("div");
+  wrap.innerHTML = '<svg class="mb ' + (has ? "has" : "") + '" viewBox="0 0 130 100" role="img" aria-label="Briefkasten">' +
+    '<rect x="10" y="20" width="100" height="64" rx="10" fill="' + color + '"/>' +
+    '<rect x="10" y="20" width="100" height="16" rx="8" fill="#fff" opacity=".16"/>' +
+    '<rect x="26" y="46" width="68" height="7" rx="3.5" fill="#000" opacity=".45"/>' +
+    '<rect x="40" y="62" width="40" height="13" rx="2" fill="#fff" opacity=".9"/>' +
+    '<g class="flag"><rect x="108" y="34" width="5" height="34" rx="2" fill="#7b8791"/><rect x="108" y="34" width="20" height="13" rx="2" fill="#c2362e"/></g>' +
+    '<path d="M8 24 C8 14 22 14 28 17 C36 11 50 13 56 17 C66 11 82 13 90 17 C100 13 112 16 112 24 C108 30 104 26 100 30 C96 26 20 26 16 30 C12 26 10 28 8 24 Z" fill="#fff"/>' +
+    '<rect x="22" y="84" width="8" height="10" fill="#7b8791"/><rect x="90" y="84" width="8" height="10" fill="#7b8791"/></svg>';
+  return wrap.firstChild;
+}
+
+let sb = null, boxes = [], letters = [], modal = null, loaded = false;
+const statusEl = document.getElementById("status");
+const gridEl = document.getElementById("grid");
+const modalEl = document.getElementById("modal");
+const dateFmt = new Intl.DateTimeFormat("de-DE", { dateStyle: "medium", timeStyle: "short" });
+const countFor = (id) => letters.filter((l) => l.box_id === id).length;
+
+async function load() {
+  const [b, l] = await Promise.all([
+    sb.from("boxes").select("id,name,pub,salt,iv,priv,created_at").order("created_at", { ascending: true }).limit(500),
+    sb.from("letters").select("id,box_id,ek,iv,ct,created_at").order("created_at", { ascending: false }).limit(2000),
+  ]);
+  if (b.error || l.error) throw (b.error || l.error);
+  boxes = b.data;
+  letters = l.data.map((x) => ({ ...x, ts: Date.parse(x.created_at) }));
+  loaded = true;
+  renderGrid();
+  if (modal && modal.type === "read") renderLetters();
+}
+
+function renderGrid() {
+  gridEl.replaceChildren();
+  for (const b of boxes) {
+    const n = countFor(b.id);
+    gridEl.append(h("div", { class: "card" },
+      mailboxSvg(colorFor(b.id), n > 0),
+      h("div", {}, h("h2", { text: b.name }), h("div", { class: "meta", text: n === 0 ? "Leer" : n === 1 ? "1 Brief" : n + " Briefe" })),
+      h("div", { class: "actions" },
+        h("button", { class: "primary", type: "button", text: "Brief einwerfen", onclick: () => openModal("write", b.id) }),
+        h("button", { type: "button", text: "Öffnen", onclick: () => openModal("unlock", b.id) }))));
+  }
+  gridEl.append(h("div", { class: "card new" },
+    h("p", { text: boxes.length ? "Noch jemand, der Weihnachtspost bekommen soll?" : "Noch kein Briefkasten. Stelle den ersten auf." }),
+    h("button", { class: "primary", type: "button", text: "Briefkasten aufstellen", onclick: () => openModal("create") })));
+  if (loaded) statusEl.textContent = boxes.length ? boxes.length + (boxes.length === 1 ? " Briefkasten" : " Briefkästen") : "";
+}
+
+function field(id, label, input) { return h("div", {}, h("label", { for: id, text: label }), input); }
+const msg = (x) => (x && x.message ? x.message : "Unbekannter Fehler");
+
+function renderModal() {
+  modalEl.replaceChildren();
+  if (!modal) return;
+  const box = boxes.find((b) => b.id === modal.boxId);
+  const close = () => { modal = null; renderModal(); };
+  let sheet;
+  const err = h("div", { class: "err", role: "alert" });
+
+  if (modal.type === "create") {
+    const name = h("input", { id: "c-name", maxlength: "40", required: "", autocomplete: "off" });
+    const pw = h("input", { id: "c-pw", type: "password", minlength: "6", required: "", autocomplete: "new-password" });
+    const go = h("button", { class: "primary", type: "submit", text: "Aufstellen" });
+    sheet = h("form", { class: "sheet", onsubmit: async (e) => {
+      e.preventDefault(); err.textContent = ""; go.disabled = true; go.textContent = "Wird aufgestellt …";
+      try {
+        const { error } = await sb.from("boxes").insert(await makeBox(name.value.trim(), pw.value));
+        if (error) throw error;
+        await load(); close();
+      } catch (x) { err.textContent = "Das hat nicht geklappt: " + msg(x); go.disabled = false; go.textContent = "Aufstellen"; }
+    } },
+      h("h2", { text: "Briefkasten aufstellen" }),
+      field("c-name", "Name des Briefkastens", name),
+      field("c-pw", "Passwort zum Öffnen (mindestens 6 Zeichen)", pw),
+      h("p", { class: "hint", text: "Das Passwort lässt sich nicht zurücksetzen. Ohne es bleiben die Briefe für immer verschlossen." }),
+      err, h("div", { class: "row" }, h("button", { type: "button", text: "Abbrechen", onclick: close }), go));
+  } else if (modal.type === "write" && box) {
+    if (modal.sent) {
+      sheet = h("div", { class: "sheet" }, h("h2", { text: "Eingeworfen" }), h("p", { text: "Dein Brief liegt jetzt im Briefkasten „" + box.name + "“ und ist verschlüsselt." }),
+        h("div", { class: "row" }, h("button", { type: "button", text: "Noch einen Brief", onclick: () => { modal.sent = false; renderModal(); } }), h("button", { class: "primary", type: "button", text: "Fertig", onclick: close })));
+    } else {
+      const from = h("input", { id: "w-from", maxlength: "40", autocomplete: "off", placeholder: "Optional" });
+      const text = h("textarea", { id: "w-text", maxlength: "3000", required: "" });
+      const go = h("button", { class: "primary", type: "submit", text: "Einwerfen" });
+      sheet = h("form", { class: "sheet", onsubmit: async (e) => {
+        e.preventDefault(); err.textContent = ""; go.disabled = true;
+        try {
+          const sealed = await seal(box, { from: from.value.trim(), text: text.value, ts: Date.now() });
+          const { error } = await sb.from("letters").insert({ box_id: box.id, ...sealed });
+          if (error) throw error;
+          modal.sent = true; renderModal(); load().catch(() => {});
+        } catch (x) { err.textContent = "Der Brief konnte nicht eingeworfen werden: " + msg(x); go.disabled = false; }
+      } },
+        h("h2", { text: "Brief an „" + box.name + "“" }),
+        field("w-from", "Von", from), field("w-text", "Nachricht", text),
+        h("p", { class: "hint", text: "Nur wer das Passwort kennt, kann den Brief lesen." }),
+        err, h("div", { class: "row" }, h("button", { type: "button", text: "Abbrechen", onclick: close }), go));
+    }
+  } else if (modal.type === "unlock" && box) {
+    const pw = h("input", { id: "u-pw", type: "password", required: "", autocomplete: "off" });
+    const go = h("button", { class: "primary", type: "submit", text: "Öffnen" });
+    sheet = h("form", { class: "sheet", onsubmit: async (e) => {
+      e.preventDefault(); err.textContent = ""; go.disabled = true; go.textContent = "Wird geprüft …";
+      try { modal.priv = await unlock(box, pw.value); modal.type = "read"; modal.cache = new Map(); renderModal(); }
+      catch (x) { err.textContent = "Das Passwort stimmt nicht."; go.disabled = false; go.textContent = "Öffnen"; pw.select(); }
+    } },
+      h("h2", { text: "„" + box.name + "“ öffnen" }), field("u-pw", "Passwort", pw), err,
+      h("div", { class: "row" }, h("button", { type: "button", text: "Abbrechen", onclick: close }), go));
+  } else if (modal.type === "read" && box) {
+    const list = h("div", { class: "letters" });
+    modal.list = list;
+    sheet = h("div", { class: "sheet" }, h("h2", { text: box.name }), list,
+      h("div", { class: "row" }, h("button", { class: "primary", type: "button", text: "Schließen", onclick: close })));
+    renderLetters();
+  } else { modal = null; return; }
+
+  modalEl.append(h("div", { class: "overlay", onclick: (e) => { if (e.target.classList.contains("overlay")) close(); } }, sheet));
+  const first = sheet.querySelector("input, textarea"); if (first) first.focus();
+}
+
+let readToken = 0;
+async function renderLetters() {
+  if (!modal || modal.type !== "read") return;
+  const token = ++readToken, m = modal;
+  const mine = letters.filter((l) => l.box_id === m.boxId).sort((a, b) => b.ts - a.ts);
+  const items = [];
+  for (const l of mine) {
+    if (!m.cache.has(l.id)) { try { m.cache.set(l.id, await openLetter(m.priv, l)); } catch (x) { m.cache.set(l.id, { text: "(Dieser Brief konnte nicht entschlüsselt werden.)", from: "", ts: l.ts }); } }
+    items.push([l, m.cache.get(l.id)]);
+  }
+  if (token !== readToken || modal !== m) return;
+  m.list.replaceChildren();
+  if (!items.length) { m.list.append(h("p", { class: "hint", text: "Der Briefkasten ist leer." })); return; }
+  for (const [l, p] of items) {
+    m.list.append(h("div", { class: "letter" }, h("div", { class: "text", text: p.text }),
+      h("div", { class: "by", text: (p.from ? "Von " + p.from + " · " : "") + dateFmt.format(new Date(p.ts || l.ts)) })));
+  }
+}
+
+function openModal(type, boxId) { modal = { type, boxId }; renderModal(); }
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && modal) { modal = null; renderModal(); } });
+
+(async function start() {
+  renderGrid();
+  if (SUPABASE_URL.startsWith("DEINE") || !window.supabase) {
+    statusEl.textContent = "Supabase ist noch nicht eingerichtet. Trage URL und Anon-Key oben in index.html ein.";
+    return;
+  }
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  try { await load(); } catch (x) { statusEl.textContent = "Die Briefkästen konnten nicht geladen werden: " + msg(x); return; }
+  setInterval(() => { if (!document.hidden) load().catch(() => {}); }, 20000);
+})();
+</script>
+</body>
+</html>
